@@ -1,0 +1,103 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '24'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Check if key.pem exists
+        id: check_key
+        run: |
+          if [ -f "key.pem" ]; then
+            echo "key_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "key_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create key.pem from secret
+        if: steps.check_key.outputs.key_exists == 'false'
+        run: |
+          if [ -n "${{ secrets.CRX_PRIVATE_KEY }}" ]; then
+            echo "${{ secrets.CRX_PRIVATE_KEY }}" > key.pem
+            chmod 600 key.pem
+            echo "Created key.pem from secret"
+          else
+            echo "Warning: CRX_PRIVATE_KEY secret not set. Using 'pnpm run generate-key' to create a new key."
+            pnpm run generate-key
+          fi
+
+      - name: Build extension
+        run: pnpm run build
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' src/manifest.json | cut -d'"' -f4)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extension version: $VERSION"
+
+      - name: Verify build artifacts
+        run: |
+          if [ -f "build/zip/tgs-${{ steps.get_version.outputs.version }}.zip" ] && [ -f "build/crx/tgs-${{ steps.get_version.outputs.version }}.crx" ]; then
+            echo "Build artifacts verified successfully"
+          else
+            echo "Error: Build artifacts not found"
+            ls -la build/zip/ || true
+            ls -la build/crx/ || true
+            exit 1
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            MarvellousSuspender 版本 ${{ steps.get_version.outputs.version }}
+            
+            ## 安装方法
+            - ~Chrome扩展商店：即将上线~
+            - 手动安装：下载zip文件，解压后通过Chrome的开发者模式加载
+            - CRX安装：下载crx文件，拖放到Chrome扩展页面
+          draft: false
+          prerelease: false
+          files: |
+            build/zip/tgs-${{ steps.get_version.outputs.version }}.zip
+            build/crx/tgs-${{ steps.get_version.outputs.version }}.crx
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
