@@ -5,3 +5,16 @@
 build
 node_modules
 Thumbs.db
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+dist
+coverage
+*.log
+*.tgz
+*.swp
+.idea
+.vscode
+*.iml
+*.bak
+*.tmp

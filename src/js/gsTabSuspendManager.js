@@ -201,6 +201,9 @@ export const gsTabSuspendManager = (function() {
   }
 
   function getQueuedTabDetails(tab) {
+    if (!_suspensionQueue) {
+      return null;
+    }
     return _suspensionQueue.getQueuedTabDetails(tab);
   }
 

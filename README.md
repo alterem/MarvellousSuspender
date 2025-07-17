@@ -30,13 +30,13 @@ Be sure to unsuspend all suspended tabs before removing any other version of the
 
 ### Build from github
 
-Dependencies: openssl, npm.
+Dependencies: openssl, pnpm.
 
 Clone the repository and run these commands:
 ```
-npm install
-npm run generate-key
-npm run build
+pnpm install
+pnpm run generate-key
+pnpm run build
 ```
 
 It should say:
