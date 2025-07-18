@@ -10,7 +10,7 @@ import  { tgs }                   from './tgs.js';
   const currentTabs = {};
 
   function generateTabInfo(info) {
-    // console.log(info.tabId, info);
+    // // console.log(info.tabId, info);
     let timerStr =
       info && info.timerUp && info && info.timerUp !== '-'
         // ? new Date(info.timerUp).toLocaleString()

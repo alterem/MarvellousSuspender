@@ -42,11 +42,11 @@
   }
 
   function init() {
-    console.log('init');
+    // console.log('init');
     //listen for background events
 
     chrome.runtime.onMessage.addListener(( request, sender, sendResponse ) => {
-      console.log('contentscript', 'onMessage', request.action, request, sender);
+      // console.log('contentscript', 'onMessage', request.action, request, sender);
       if (request.hasOwnProperty('action')) {
         if (request.action === 'requestInfo') {
           sendResponse(buildReportTabStatePayload());
@@ -82,19 +82,19 @@
   }
 
   function waitForRuntimeReady(retries) {
-    console.log('waitForRuntimeReady');
+    // console.log('waitForRuntimeReady');
     retries = retries || 0;
     return new Promise((resolve) => resolve(chrome.runtime)).then((chromeRuntime) => {
       if (chromeRuntime) {
-        console.log('waitForRuntimeReady ready');
+        // console.log('waitForRuntimeReady ready');
         return Promise.resolve();
       }
       if (retries > 3) {
-        console.log('waitForRuntimeReady reject');
+        // console.log('waitForRuntimeReady reject');
         return Promise.reject('Failed waiting for chrome.runtime');
       }
       retries += 1;
-      console.log('waitForRuntimeReady retries', retries);
+      // console.log('waitForRuntimeReady retries', retries);
       return new Promise(resolve => setTimeout(resolve, 500)).then(() =>
         waitForRuntimeReady(retries)
       );

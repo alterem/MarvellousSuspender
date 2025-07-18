@@ -304,7 +304,7 @@ export const gsStorage = {
 
   // Push settings to sync
   syncSettings: async () => {
-    console.log('syncSettings');
+    // console.log('syncSettings');
     const settings = await gsStorage.getSettings();
     if (settings[gsStorage.SYNC_SETTINGS]) {
       // Since sync is a local setting, delete it to simplify things.

@@ -45,7 +45,7 @@ export const gsUtils = {
   log: function(id, text, ...args) {
     if (gsUtils.debugInfo) {
       args = args || [];
-      console.log(id, (new Date() + '').split(' ')[4], text, ...args);
+      // console.log(id, (new Date() + '').split(' ')[4], text, ...args);
     }
   },
   warning: function(id, text, ...args) {
@@ -77,7 +77,7 @@ export const gsUtils = {
           ? errorObj
           : JSON.stringify(errorObj, null, 2);
       errorObj = errorObj || {};
-      console.log(id, (new Date() + '').split(' ')[4], 'Error:');
+      // console.log(id, (new Date() + '').split(' ')[4], 'Error:');
       console.error(
         gsUtils.getPrintableError(errorMessage, stackTrace, ...args),
       );

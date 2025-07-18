@@ -415,7 +415,7 @@ export const gsTabSuspendManager = (function() {
 
           let generateCanvas;
 
-          // console.log('Generating via html2canvas..');
+          // // console.log('Generating via html2canvas..');
           generateCanvas = () => {
             return html2canvas(document.body, {
               height: height,
@@ -470,7 +470,7 @@ export const gsTabSuspendManager = (function() {
           if (!dataUrl && !errorMsg) {
             errorMsg = 'Failed to generate dataUrl';
           }
-          // console.log('saving previewData..');
+          // // console.log('saving previewData..');
           chrome.runtime.sendMessage({ action: 'savePreviewData', previewUrl: dataUrl, errorMsg: errorMsg, });
 
 
