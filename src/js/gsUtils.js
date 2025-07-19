@@ -5,11 +5,27 @@ import  { gsSession }             from './gsSession.js';
 import  { gsStorage }             from './gsStorage.js';
 import  { gsTabDiscardManager }   from './gsTabDiscardManager.js';
 import  { gsTabSuspendManager }   from './gsTabSuspendManager.js';
-import  { tgs }                   from './tgs.js';
 
 'use strict';
 
+// 创建回调函数，用于解决循环依赖
+const callbacks = {
+  isCurrentFocusedTab: null,
+  unsuspendTab: null,
+  resetAutoSuspendTimerForTab: null,
+  buildContextMenu: null,
+  isCharging: null,
+};
+
 export const gsUtils = {
+  // 注册回调函数的方法
+  registerCallbacks: function(callbackFunctions) {
+    Object.keys(callbackFunctions).forEach(key => {
+      if (callbacks.hasOwnProperty(key)) {
+        callbacks[key] = callbackFunctions[key];
+      }
+    });
+  },
   STATUS_NORMAL: 'normal',
   STATUS_LOADING: 'loading',
   STATUS_SPECIAL: 'special',
@@ -202,7 +218,8 @@ export const gsUtils = {
 
   isProtectedActiveTab: async (tab) => {
     const ignoreActiveTabs = await gsStorage.getOption(gsStorage.IGNORE_ACTIVE_TABS);
-    return ( await tgs.isCurrentFocusedTab(tab) || (ignoreActiveTabs && tab.active) );
+    const isCurrentFocused = callbacks.isCurrentFocusedTab ? await callbacks.isCurrentFocusedTab(tab) : false;
+    return (isCurrentFocused || (ignoreActiveTabs && tab.active));
   },
 
   // Note: Normal tabs may be in a discarded state
@@ -598,7 +615,9 @@ export const gsUtils = {
             (changedSettingKeys.includes(gsStorage.IGNORE_PINNED) && (await gsUtils.isProtectedPinnedTab(tab))) ||
             (changedSettingKeys.includes(gsStorage.IGNORE_ACTIVE_TABS) && (await gsUtils.isProtectedActiveTab(tab)))
           ) {
-            await tgs.unsuspendTab(tab);
+            if (callbacks.unsuspendTab) {
+              await callbacks.unsuspendTab(tab);
+            }
             return;
           }
 
@@ -608,8 +627,11 @@ export const gsUtils = {
             gsStorage.SCREEN_CAPTURE,
           );
           if (updateTheme || updatePreviewMode) {
-            // const suspendedView = tgs.getInternalViewByTabId(tab.id);
-            const context = await tgs.getInternalContextByTabId(tab.id);
+            // 使用回调函数获取内部上下文
+            let context = null;
+            if (callbacks.getInternalContextByTabId) {
+              context = await callbacks.getInternalContextByTabId(tab.id);
+            }
             if (context) {
               if (updateTheme) {
                 gsStorage.getOption(gsStorage.THEME).then((theme) => {
@@ -663,14 +685,17 @@ export const gsUtils = {
             (changedSettingKeys.includes(gsStorage.IGNORE_PINNED) && !settings[gsStorage.IGNORE_PINNED] && tab.pinned) ||
             (changedSettingKeys.includes(gsStorage.IGNORE_AUDIO) && !settings[gsStorage.IGNORE_AUDIO] && tab.audible) ||
             (changedSettingKeys.includes(gsStorage.IGNORE_WHEN_OFFLINE) && !settings[gsStorage.IGNORE_WHEN_OFFLINE] && !navigator.onLine) ||
-            (changedSettingKeys.includes(gsStorage.IGNORE_WHEN_CHARGING) && !settings[gsStorage.IGNORE_WHEN_CHARGING] && await tgs.isCharging()) ||
+            (changedSettingKeys.includes(gsStorage.IGNORE_WHEN_CHARGING) && !settings[gsStorage.IGNORE_WHEN_CHARGING] &&
+              (callbacks.isCharging ? await callbacks.isCharging() : false)) ||
             (changedSettingKeys.includes(gsStorage.WHITELIST) &&
               ( gsUtils.checkSpecificWhiteList(tab.url, oldValueBySettingKey[gsStorage.WHITELIST]) &&
                !gsUtils.checkSpecificWhiteList(tab.url, newValueBySettingKey[gsStorage.WHITELIST])
               )
             );
           if (updateSuspendTime) {
-            await tgs.resetAutoSuspendTimerForTab(tab);
+            if (callbacks.resetAutoSuspendTimerForTab) {
+              await callbacks.resetAutoSuspendTimerForTab(tab);
+            }
           }
         });
 
@@ -701,7 +726,9 @@ export const gsUtils = {
     //if context menu has been disabled then remove from chrome
     if (gsUtils.contains(changedSettingKeys, gsStorage.ADD_CONTEXT)) {
       gsStorage.getOption(gsStorage.ADD_CONTEXT).then((addContextMenu) => {
-        tgs.buildContextMenu(addContextMenu);
+        if (callbacks.buildContextMenu) {
+          callbacks.buildContextMenu(addContextMenu);
+        }
       });
     }
 

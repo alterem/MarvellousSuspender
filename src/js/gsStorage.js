@@ -1,4 +1,3 @@
-import  { gsSession }             from './gsSession.js';
 import  { gsUtils }               from './gsUtils.js';
 
 'use strict';
@@ -74,7 +73,8 @@ export const gsStorage = {
       var defaultKeys = Object.keys(defaultSettings);
       chrome.storage.sync.get(defaultKeys, async (syncedSettings) => {
         gsUtils.log('gsStorage', 'syncedSettings on init: ', syncedSettings);
-        await gsSession.setSynchedSettingsOnInit(syncedSettings);
+        // 保存同步设置到会话存储，而不是调用gsSession
+        await gsStorage.saveStorage('session', 'gsSyncedSettingsOnInit', syncedSettings);
 
         chrome.storage.local.get(['gsSettings'], async (result) => {
 
