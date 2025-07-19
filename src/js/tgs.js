@@ -10,15 +10,6 @@ import  { gsUtils }               from './gsUtils.js';
 export const tgs = (function() {
   'use strict';
   
-  // 初始化时注册回调函数到gsUtils
-  gsUtils.registerCallbacks({
-    isCurrentFocusedTab: isCurrentFocusedTab,
-    unsuspendTab: unsuspendTab,
-    resetAutoSuspendTimerForTab: resetAutoSuspendTimerForTab,
-    buildContextMenu: buildContextMenu,
-    isCharging: isCharging,
-    getInternalContextByTabId: getInternalContextByTabId
-  });
 
   const ICON_SUSPENSION_ACTIVE = {
     '16': '/img/ic_suspendy_16x16.png',
@@ -1343,6 +1334,18 @@ export const tgs = (function() {
 
 
 
+  function initializeTgs() {
+    // 初始化时注册回调函数到gsUtils
+    gsUtils.registerCallbacks({
+      isCurrentFocusedTab: isCurrentFocusedTab,
+      unsuspendTab: unsuspendTab,
+      resetAutoSuspendTimerForTab: resetAutoSuspendTimerForTab,
+      buildContextMenu: buildContextMenu,
+      isCharging: isCharging,
+      getInternalContextByTabId: getInternalContextByTabId
+    });
+  }
+
   return {
     STATE_UNLOADED_URL,
     STATE_INITIALISE_SUSPENDED_TAB,
@@ -1405,6 +1408,7 @@ export const tgs = (function() {
     whitelistHighlightedTab,
     unsuspendAllTabsInAllWindows,
     promptForFilePermissions,
+    initializeTgs, // Export the new initialization function
   };
 
 })();

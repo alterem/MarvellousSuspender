@@ -26,6 +26,7 @@ import  { tgs }                   from './tgs.js';
     if (startupDone) return;
     startupDone = true;
 
+    tgs.initializeTgs(); // Call the initialization function
     tgs.resetAutoSuspendTimerForAllTabs();
 
     Promise.resolve()
